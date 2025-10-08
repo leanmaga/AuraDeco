@@ -6,7 +6,7 @@ const Banner = () => {
     <div className="relative bg-white min-h-screen w-full flex flex-col lg:flex-row">
       <div className="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center p-4">
         <h1 className="mt-4 mb-4 tracking-in-expand text-4xl text-6xl lg:text-8xl font-bold tracking-tight text-gray-900 pb-4 lg:pb-8">
-          Glob.deco
+          AuraDeco
         </h1>
         <div className="text-center">
           <p className="mt-1 text-base lg:text-xl text-gray-500 p-2">
