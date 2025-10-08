@@ -1,0 +1,20 @@
+// Middleware de manejo de errores global
+const errorHandler = (err, req, res, next) => {
+  console.error("Error:", err);
+
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+
+  res.status(statusCode).json({
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  });
+};
+
+// Middleware para rutas no encontradas
+const notFound = (req, res, next) => {
+  const error = new Error(`No encontrado - ${req.originalUrl}`);
+  res.status(404);
+  next(error);
+};
+
+module.exports = { errorHandler, notFound };

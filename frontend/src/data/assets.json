@@ -1,0 +1,47 @@
+{
+  "images": {
+    "globos": {
+      "globo1": "../assets/images/1.png",
+      "globo2": "../assets/images/2.png",
+      "globo4": "../assets/images/4.png",
+      "globo5": "../assets/images/5.png",
+      "globo6": "../assets/images/6.png",
+      "globo7": "../assets/images/7.jpg"
+    },
+    "others": {
+      "arreglo2": "../assets/images/arreglo2.png",
+      "arreglo3": "../assets/images/arreglo3.png",
+      "quinceled": "../assets/images/quinceled.png",
+      "img1": "../assets/images/img1.jpg",
+      "img2": "../assets/images/img2.jpg",
+      "img3": "../assets/images/img3.png",
+      "img4": "../assets/images/img4.png"
+    }
+  },
+  "videos": {
+    "arreglo": "../assets/arreglo.mp4",
+    "quince": "../assets/quince.mp4"
+  },
+  "instagramLinks": {
+    "red1": "https://www.instagram.com/p/C0FwghyMLIT/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==",
+    "red2": "https://www.instagram.com/p/CseRK0vL7NC/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==",
+    "red3": "https://www.instagram.com/p/C1zbN2qM9y-/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==",
+    "red4": "https://www.instagram.com/p/C07rqJLMpl7/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA=="
+  },
+  "titles": {
+    "photoCard": {
+      "title": "Arreglo de globos personalizado",
+      "subtitle": "Miren la hermosa deco que realizamos para los 15 de Sofía💚🦋!",
+      "parrafo": "También realizamos centros de mesa y columnas"
+    },
+    "galeria": {
+      "titulo1": "Miren esta belleza de deco! De Frozen para los 3 añitos 🧊❄️ Muy completo! con candybar, burbujas en la pile..",
+      "titulo2": "Arreglo de La Sirenita!🧜🦀",
+      "titulo3": "Hermosa deco para los 18",
+      "titulo4": "Harry Potter Está deco superó nuestras expectativas, quedó divina!😍",
+      "galeria2titulo1": "Hoy realizamos una deco para Belu que cumplió 15 con mariposas💗",
+      "galeria2titulo2": "Alquiler de 10 Puffs y Mesa ❤️‍🔥",
+      "galeria2titulo3": "Hermosa deco para Todas tus fiestas..."
+    }
+  }
+}
