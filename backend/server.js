@@ -65,7 +65,7 @@ app.get("/api/health", (req, res) => {
 // Ruta raíz
 app.get("/", (req, res) => {
   res.json({
-    message: "API de Glob.deco",
+    message: "API de AuraDeco",
     version: "1.0.0",
     endpoints: {
       health: "/api/health",

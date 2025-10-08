@@ -22,7 +22,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-purple-600">
-                Glob.deco Admin
+                AuraDeco Admin
               </h1>
               <span className="ml-4 text-sm text-gray-600">
                 Bienvenido, {user?.username}

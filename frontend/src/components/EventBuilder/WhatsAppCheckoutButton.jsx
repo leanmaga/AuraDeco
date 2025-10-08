@@ -5,7 +5,7 @@ const WhatsAppCheckoutButton = () => {
     import.meta.env.VITE_WHATSAPP_NUMBER || "5491121621988";
 
   const message =
-    `🎉 *Pedido de Evento - Glob.deco*\n\n` +
+    `🎉 *Pedido de Evento - AuraDeco*\n\n` +
     `📝 *Productos:*\n${cart
       .map(
         (item) =>

@@ -40,7 +40,7 @@ const BuyCard = ({ imagen }) => {
         <div className="flex justify-center content-center items-center font-medium">
           <div className="flex flex-col justify-center content-center gap-4">
             <a
-              href="https://www.instagram.com/glob.deco/?hl=es"
+              href="https://www.instagram.com/auradeco/?hl=es"
               target="_blank"
               rel="noopener noreferrer"
               className="w-32 flex justify-center text-center items-center h-8 font-semibold rounded-full bg-secondary-600 text-white hover:bg-secondary-400"

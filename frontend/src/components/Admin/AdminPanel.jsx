@@ -82,7 +82,7 @@ const AdminPanel = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Glob.deco</h1>
+            <h1 className="text-3xl font-bold text-gray-900">AuraDeco</h1>
             <p className="text-gray-600 mt-2">Panel de Administración</p>
           </div>
 
@@ -143,7 +143,7 @@ const AdminPanel = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-purple-600">
-                Glob.deco Admin
+                AuraDeco Admin
               </h1>
             </div>
             <button

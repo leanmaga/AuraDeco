@@ -4,7 +4,7 @@ const Footer = () => {
       <div className="container mx-auto">
         <div className="flex flex-col p-2 justify-between items-center md:flex-row lg:flex-row">
           <div className="p-4">
-            <p className="text-lg font-semibold">Glob.deco</p>
+            <p className="text-lg font-semibold">AuraDeco</p>
             <p className="text-sm">Gonzalez Catan, Buenos Aires Argentina</p>
             <a
               className="text-sm"
