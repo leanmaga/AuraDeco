@@ -11,8 +11,8 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "http://localhost:3000",
   process.env.CLIENT_URL,
-  "https://glob-deco.vercel.app",
-  "https://glob-deco-wtv4.vercel.app",
+  "https://auradecodeco.vercel.app",
+  "https://aura-deco.vercel.app/",
 ].filter(Boolean);
 
 app.use(

@@ -12,7 +12,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "globdeco-events", // Carpeta en Cloudinary
+    folder: "auradeco", // Carpeta en Cloudinary
     allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
     transformation: [
       { width: 800, height: 800, crop: "limit" }, // Optimizar tamaño
