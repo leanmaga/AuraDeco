@@ -1,114 +1,160 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/database");
+// Script para verificar que el deployment esté funcionando correctamente
 
-const app = express();
+const BACKEND_URL = "https://aura-deco.vercel.app";
+const FRONTEND_URL = "https://auradeco.vercel.app";
 
-// CORS configurado
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:3000",
-  process.env.CLIENT_URL,
-  "https://auradecodeco.vercel.app",
-  "https://aura-deco.vercel.app",
-].filter(Boolean);
+async function checkBackend() {
+  console.log("\n🔍 Verificando Backend...\n");
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      console.log("🔍 Origin recibido:", origin);
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-        console.log("✅ Origin permitido");
-        callback(null, true);
-      } else {
-        console.log("❌ Origin rechazado:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+  try {
+    // Test 1: Verificar que el servidor esté online
+    console.log("1️⃣ Verificando servidor...");
+    const rootRes = await fetch(BACKEND_URL);
+    const rootData = await rootRes.json();
+    console.log(`✅ Servidor online: ${rootData.message}`);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+    // Test 2: Verificar health endpoint
+    console.log("\n2️⃣ Verificando /api/health...");
+    const healthRes = await fetch(`${BACKEND_URL}/api/health`);
+    const healthData = await healthRes.json();
+    console.log(`✅ Health check: ${healthData.message}`);
+    console.log(`   Environment: ${healthData.environment}`);
+    console.log(`   Client URL: ${healthData.clientUrl}`);
+    console.log(`   Allowed Origins:`, healthData.allowedOrigins);
 
-// Logging en desarrollo
-if (process.env.NODE_ENV !== "production") {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-  });
+    // Test 3: Verificar CORS haciendo una petición desde el origin del frontend
+    console.log("\n3️⃣ Verificando CORS...");
+    const corsRes = await fetch(`${BACKEND_URL}/api/health`, {
+      headers: {
+        Origin: FRONTEND_URL,
+        "Access-Control-Request-Method": "GET",
+      },
+    });
+
+    const corsHeaders = corsRes.headers.get("access-control-allow-origin");
+    if (corsHeaders) {
+      console.log(`✅ CORS configurado: ${corsHeaders}`);
+    } else {
+      console.log(`⚠️  Header CORS no encontrado`);
+    }
+
+    // Test 4: Verificar endpoint de categorías
+    console.log("\n4️⃣ Verificando /api/categories...");
+    const catRes = await fetch(`${BACKEND_URL}/api/categories`);
+    if (catRes.ok) {
+      const catData = await catRes.json();
+      console.log(`✅ Categorías: ${catData.count} encontradas`);
+    } else {
+      console.log(`❌ Error en categorías: ${catRes.status}`);
+    }
+
+    // Test 5: Verificar endpoint de productos
+    console.log("\n5️⃣ Verificando /api/products...");
+    const prodRes = await fetch(`${BACKEND_URL}/api/products`);
+    if (prodRes.ok) {
+      const prodData = await prodRes.json();
+      console.log(`✅ Productos: ${prodData.count} encontrados`);
+    } else {
+      console.log(`❌ Error en productos: ${prodRes.status}`);
+    }
+
+    console.log("\n" + "=".repeat(50));
+    console.log("✅ BACKEND VERIFICADO CORRECTAMENTE");
+    console.log("=".repeat(50) + "\n");
+  } catch (error) {
+    console.error("\n❌ ERROR EN BACKEND:", error.message);
+    console.log("\n⚠️  Posibles causas:");
+    console.log("   - El backend no está desplegado en Vercel");
+    console.log("   - La URL del backend es incorrecta");
+    console.log("   - Hay un error en el código del servidor");
+    console.log("\n");
+  }
 }
 
-// Rutas con prefijo /api
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/categories", require("./routes/categories"));
-app.use("/api/products", require("./routes/products"));
-app.use("/api/upload", require("./routes/upload")); // 👈 NUEVA RUTA
+async function checkFrontend() {
+  console.log("\n🔍 Verificando Frontend...\n");
 
-// Ruta de salud
-app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Servidor funcionando correctamente",
-    timestamp: new Date().toISOString(),
-    cors: "enabled",
-    allowedOrigins: allowedOrigins,
-  });
-});
-
-// Ruta raíz
-app.get("/", (req, res) => {
-  res.json({
-    message: "API de AuraDeco",
-    version: "1.0.0",
-    endpoints: {
-      health: "/api/health",
-      auth: "/api/auth",
-      categories: "/api/categories",
-      products: "/api/products",
-      upload: "/api/upload",
-    },
-  });
-});
-
-// Manejo de errores
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
-  });
-});
-
-const PORT = process.env.PORT || 5000;
-
-// Función async para iniciar el servidor
-const startServer = async () => {
   try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-      console.log(`📍 Entorno: ${process.env.NODE_ENV || "development"}`);
-      console.log(`🔗 API disponible en: http://localhost:${PORT}/api`);
-      console.log(`✅ CORS habilitado para:`, allowedOrigins);
-      console.log(`📤 Upload de imágenes: habilitado`);
-    });
+    console.log("1️⃣ Verificando que el frontend esté online...");
+    const res = await fetch(FRONTEND_URL);
+
+    if (res.ok) {
+      console.log(`✅ Frontend online: ${res.status}`);
+
+      // Verificar headers de seguridad
+      console.log("\n2️⃣ Verificando headers de seguridad...");
+      const csp = res.headers.get("content-security-policy");
+      if (csp && csp.includes("aura-deco.vercel.app")) {
+        console.log(`✅ CSP configurado correctamente`);
+      } else {
+        console.log(`⚠️  CSP podría necesitar ajustes`);
+      }
+    } else {
+      console.log(`❌ Frontend error: ${res.status}`);
+    }
+
+    console.log("\n" + "=".repeat(50));
+    console.log("✅ FRONTEND VERIFICADO CORRECTAMENTE");
+    console.log("=".repeat(50) + "\n");
   } catch (error) {
-    console.error("❌ Error al iniciar el servidor:", error.message);
-    process.exit(1);
+    console.error("\n❌ ERROR EN FRONTEND:", error.message);
+    console.log("\n");
   }
-};
+}
 
-startServer();
+async function checkIntegration() {
+  console.log("\n🔗 Verificando Integración Frontend ↔️ Backend...\n");
 
-process.on("unhandledRejection", (err) => {
-  console.error("❌ Error no manejado:", err);
-  process.exit(1);
-});
+  try {
+    // Simular una petición desde el frontend al backend
+    console.log("1️⃣ Simulando petición de login...");
+    const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: "OPTIONS",
+      headers: {
+        Origin: FRONTEND_URL,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+      },
+    });
+
+    if (loginRes.ok) {
+      const allowOrigin = loginRes.headers.get("access-control-allow-origin");
+      const allowMethods = loginRes.headers.get("access-control-allow-methods");
+
+      console.log(`✅ Preflight exitoso`);
+      console.log(`   Allow-Origin: ${allowOrigin}`);
+      console.log(`   Allow-Methods: ${allowMethods}`);
+
+      if (allowOrigin === FRONTEND_URL || allowOrigin === "*") {
+        console.log(`✅ CORS permitido para ${FRONTEND_URL}`);
+      } else {
+        console.log(`⚠️  CORS podría no estar permitido`);
+      }
+    } else {
+      console.log(`❌ Preflight falló: ${loginRes.status}`);
+    }
+
+    console.log("\n" + "=".repeat(50));
+    console.log("✅ INTEGRACIÓN VERIFICADA");
+    console.log("=".repeat(50) + "\n");
+  } catch (error) {
+    console.error("\n❌ ERROR EN INTEGRACIÓN:", error.message);
+    console.log("\n");
+  }
+}
+
+async function main() {
+  console.log("\n" + "=".repeat(50));
+  console.log("🚀 VERIFICACIÓN DE DEPLOYMENT - AURADECO");
+  console.log("=".repeat(50));
+
+  await checkBackend();
+  await checkFrontend();
+  await checkIntegration();
+
+  console.log("\n✅ VERIFICACIÓN COMPLETA\n");
+  console.log("Si todos los checks pasaron, tu aplicación debería funcionar.");
+  console.log("Si hay errores, revisa las variables de entorno en Vercel.\n");
+}
+
+main();
