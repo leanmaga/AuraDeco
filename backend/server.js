@@ -1,160 +1,261 @@
-// Script para verificar que el deployment esté funcionando correctamente
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const connectDB = require("./config/database");
 
-const BACKEND_URL = "https://aura-deco.vercel.app";
-const FRONTEND_URL = "https://auradeco.vercel.app";
+const app = express();
 
-async function checkBackend() {
-  console.log("\n🔍 Verificando Backend...\n");
+// ============================================
+// CONFIGURACIÓN DE CORS
+// ============================================
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+  "https://auradeco.vercel.app", // Frontend en producción
+  "https://www.auradeco.vercel.app", // Con www por si acaso
+].filter(Boolean);
 
-  try {
-    // Test 1: Verificar que el servidor esté online
-    console.log("1️⃣ Verificando servidor...");
-    const rootRes = await fetch(BACKEND_URL);
-    const rootData = await rootRes.json();
-    console.log(`✅ Servidor online: ${rootData.message}`);
+console.log("🔧 CLIENT_URL desde .env:", process.env.CLIENT_URL);
+console.log("🔧 Orígenes permitidos:", allowedOrigins);
 
-    // Test 2: Verificar health endpoint
-    console.log("\n2️⃣ Verificando /api/health...");
-    const healthRes = await fetch(`${BACKEND_URL}/api/health`);
-    const healthData = await healthRes.json();
-    console.log(`✅ Health check: ${healthData.message}`);
-    console.log(`   Environment: ${healthData.environment}`);
-    console.log(`   Client URL: ${healthData.clientUrl}`);
-    console.log(`   Allowed Origins:`, healthData.allowedOrigins);
+// Configuración CORS más robusta
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      console.log("🔍 Origin recibido:", origin);
 
-    // Test 3: Verificar CORS haciendo una petición desde el origin del frontend
-    console.log("\n3️⃣ Verificando CORS...");
-    const corsRes = await fetch(`${BACKEND_URL}/api/health`, {
-      headers: {
-        Origin: FRONTEND_URL,
-        "Access-Control-Request-Method": "GET",
-      },
-    });
-
-    const corsHeaders = corsRes.headers.get("access-control-allow-origin");
-    if (corsHeaders) {
-      console.log(`✅ CORS configurado: ${corsHeaders}`);
-    } else {
-      console.log(`⚠️  Header CORS no encontrado`);
-    }
-
-    // Test 4: Verificar endpoint de categorías
-    console.log("\n4️⃣ Verificando /api/categories...");
-    const catRes = await fetch(`${BACKEND_URL}/api/categories`);
-    if (catRes.ok) {
-      const catData = await catRes.json();
-      console.log(`✅ Categorías: ${catData.count} encontradas`);
-    } else {
-      console.log(`❌ Error en categorías: ${catRes.status}`);
-    }
-
-    // Test 5: Verificar endpoint de productos
-    console.log("\n5️⃣ Verificando /api/products...");
-    const prodRes = await fetch(`${BACKEND_URL}/api/products`);
-    if (prodRes.ok) {
-      const prodData = await prodRes.json();
-      console.log(`✅ Productos: ${prodData.count} encontrados`);
-    } else {
-      console.log(`❌ Error en productos: ${prodRes.status}`);
-    }
-
-    console.log("\n" + "=".repeat(50));
-    console.log("✅ BACKEND VERIFICADO CORRECTAMENTE");
-    console.log("=".repeat(50) + "\n");
-  } catch (error) {
-    console.error("\n❌ ERROR EN BACKEND:", error.message);
-    console.log("\n⚠️  Posibles causas:");
-    console.log("   - El backend no está desplegado en Vercel");
-    console.log("   - La URL del backend es incorrecta");
-    console.log("   - Hay un error en el código del servidor");
-    console.log("\n");
-  }
-}
-
-async function checkFrontend() {
-  console.log("\n🔍 Verificando Frontend...\n");
-
-  try {
-    console.log("1️⃣ Verificando que el frontend esté online...");
-    const res = await fetch(FRONTEND_URL);
-
-    if (res.ok) {
-      console.log(`✅ Frontend online: ${res.status}`);
-
-      // Verificar headers de seguridad
-      console.log("\n2️⃣ Verificando headers de seguridad...");
-      const csp = res.headers.get("content-security-policy");
-      if (csp && csp.includes("aura-deco.vercel.app")) {
-        console.log(`✅ CSP configurado correctamente`);
-      } else {
-        console.log(`⚠️  CSP podría necesitar ajustes`);
+      // Permitir requests sin origin (Postman, curl, etc)
+      if (!origin) {
+        console.log("✅ Request sin origin permitido");
+        return callback(null, true);
       }
-    } else {
-      console.log(`❌ Frontend error: ${res.status}`);
-    }
 
-    console.log("\n" + "=".repeat(50));
-    console.log("✅ FRONTEND VERIFICADO CORRECTAMENTE");
-    console.log("=".repeat(50) + "\n");
-  } catch (error) {
-    console.error("\n❌ ERROR EN FRONTEND:", error.message);
-    console.log("\n");
-  }
-}
-
-async function checkIntegration() {
-  console.log("\n🔗 Verificando Integración Frontend ↔️ Backend...\n");
-
-  try {
-    // Simular una petición desde el frontend al backend
-    console.log("1️⃣ Simulando petición de login...");
-    const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
-      method: "OPTIONS",
-      headers: {
-        Origin: FRONTEND_URL,
-        "Access-Control-Request-Method": "POST",
-        "Access-Control-Request-Headers": "content-type",
-      },
-    });
-
-    if (loginRes.ok) {
-      const allowOrigin = loginRes.headers.get("access-control-allow-origin");
-      const allowMethods = loginRes.headers.get("access-control-allow-methods");
-
-      console.log(`✅ Preflight exitoso`);
-      console.log(`   Allow-Origin: ${allowOrigin}`);
-      console.log(`   Allow-Methods: ${allowMethods}`);
-
-      if (allowOrigin === FRONTEND_URL || allowOrigin === "*") {
-        console.log(`✅ CORS permitido para ${FRONTEND_URL}`);
-      } else {
-        console.log(`⚠️  CORS podría no estar permitido`);
+      // Permitir cualquier subdominio de vercel.app
+      if (origin.endsWith(".vercel.app")) {
+        console.log("✅ Origin Vercel permitido:", origin);
+        return callback(null, true);
       }
-    } else {
-      console.log(`❌ Preflight falló: ${loginRes.status}`);
-    }
 
-    console.log("\n" + "=".repeat(50));
-    console.log("✅ INTEGRACIÓN VERIFICADA");
-    console.log("=".repeat(50) + "\n");
-  } catch (error) {
-    console.error("\n❌ ERROR EN INTEGRACIÓN:", error.message);
-    console.log("\n");
+      // Verificar si está en la lista de orígenes permitidos
+      if (allowedOrigins.includes(origin)) {
+        console.log("✅ Origin en lista permitido:", origin);
+        return callback(null, true);
+      }
+
+      // Si no coincide, rechazar
+      console.log("❌ Origin rechazado:", origin);
+      console.log("   Lista permitida:", allowedOrigins);
+      callback(new Error(`CORS: Origin ${origin} no permitido`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 600, // Cache preflight por 10 minutos
+  })
+);
+
+// Handler explícito para OPTIONS (preflight)
+app.options("*", cors());
+
+// ============================================
+// MIDDLEWARES
+// ============================================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Logging mejorado
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(
+    `📨 [${timestamp}] ${req.method} ${req.path} - Origin: ${
+      req.headers.origin || "sin origin"
+    }`
+  );
+  next();
+});
+
+// ============================================
+// RUTAS
+// ============================================
+
+// Rutas con prefijo /api
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/categories", require("./routes/categories"));
+app.use("/api/products", require("./routes/products"));
+app.use("/api/upload", require("./routes/upload"));
+
+// Ruta de salud mejorada
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Servidor funcionando correctamente",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+    cors: "enabled",
+    allowedOrigins: allowedOrigins,
+    clientUrl: process.env.CLIENT_URL,
+    mongodb: "connected",
+  });
+});
+
+// Ruta raíz
+app.get("/", (req, res) => {
+  res.json({
+    message: "API de AuraDeco",
+    version: "1.0.0",
+    status: "online",
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth",
+      categories: "/api/categories",
+      products: "/api/products",
+      upload: "/api/upload",
+    },
+    documentation: {
+      postman: "https://documenter.getpostman.com/view/your-collection",
+      swagger: "/api/docs",
+    },
+  });
+});
+
+// Ruta 404 para rutas no encontradas
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Ruta no encontrada",
+    path: req.path,
+    method: req.method,
+    availableEndpoints: [
+      "/api/health",
+      "/api/auth/login",
+      "/api/categories",
+      "/api/products",
+      "/api/upload",
+    ],
+  });
+});
+
+// ============================================
+// MANEJO DE ERRORES
+// ============================================
+app.use((err, req, res, next) => {
+  console.error("❌ Error capturado:", err.message);
+  console.error("Stack:", err.stack);
+
+  // Error de CORS
+  if (err.message.includes("CORS")) {
+    return res.status(403).json({
+      success: false,
+      message: "Error de CORS: Origen no permitido",
+      error: err.message,
+    });
   }
-}
 
-async function main() {
-  console.log("\n" + "=".repeat(50));
-  console.log("🚀 VERIFICACIÓN DE DEPLOYMENT - AURADECO");
-  console.log("=".repeat(50));
+  // Error de validación
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: "Error de validación",
+      errors: err.errors,
+    });
+  }
 
-  await checkBackend();
-  await checkFrontend();
-  await checkIntegration();
+  // Error de autenticación
+  if (err.name === "UnauthorizedError" || err.message.includes("token")) {
+    return res.status(401).json({
+      success: false,
+      message: "No autorizado",
+      error: err.message,
+    });
+  }
 
-  console.log("\n✅ VERIFICACIÓN COMPLETA\n");
-  console.log("Si todos los checks pasaron, tu aplicación debería funcionar.");
-  console.log("Si hay errores, revisa las variables de entorno en Vercel.\n");
-}
+  // Error genérico
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || "Error interno del servidor",
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  });
+});
 
-main();
+// ============================================
+// INICIAR SERVIDOR
+// ============================================
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    // Conectar a MongoDB
+    await connectDB();
+
+    // Iniciar servidor Express
+    app.listen(PORT, () => {
+      console.log("\n" + "=".repeat(50));
+      console.log("🚀 SERVIDOR INICIADO EXITOSAMENTE");
+      console.log("=".repeat(50));
+      console.log(`📍 Entorno: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🔗 Puerto: ${PORT}`);
+      console.log(`🌐 API: http://localhost:${PORT}/api`);
+      console.log(`💚 Health: http://localhost:${PORT}/api/health`);
+      console.log(`✅ CORS habilitado para:`, allowedOrigins);
+      console.log(
+        `🌍 Cliente configurado: ${process.env.CLIENT_URL || "No configurado"}`
+      );
+      console.log(`📤 Upload de imágenes: habilitado`);
+      console.log(`📅 Fecha: ${new Date().toISOString()}`);
+      console.log("=".repeat(50) + "\n");
+    });
+  } catch (error) {
+    console.error("\n" + "=".repeat(50));
+    console.error("❌ ERROR AL INICIAR SERVIDOR");
+    console.error("=".repeat(50));
+    console.error(`Mensaje: ${error.message}`);
+    console.error(`Stack: ${error.stack}`);
+    console.error("=".repeat(50) + "\n");
+    process.exit(1);
+  }
+};
+
+// ============================================
+// MANEJO DE EVENTOS DEL PROCESO
+// ============================================
+
+// Manejo de promesas rechazadas
+process.on("unhandledRejection", (err) => {
+  console.error("\n❌ ERROR NO MANEJADO (Unhandled Rejection)");
+  console.error("Error:", err);
+  console.error("Stack:", err.stack);
+
+  // Cerrar servidor y salir
+  process.exit(1);
+});
+
+// Manejo de excepciones no capturadas
+process.on("uncaughtException", (err) => {
+  console.error("\n❌ EXCEPCIÓN NO CAPTURADA (Uncaught Exception)");
+  console.error("Error:", err);
+  console.error("Stack:", err.stack);
+
+  // Cerrar servidor y salir
+  process.exit(1);
+});
+
+// Manejo de cierre graceful
+process.on("SIGTERM", () => {
+  console.log("\n⚠️  SIGTERM recibido. Cerrando servidor...");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("\n⚠️  SIGINT recibido. Cerrando servidor...");
+  process.exit(0);
+});
+
+// ============================================
+// INICIAR
+// ============================================
+startServer();
