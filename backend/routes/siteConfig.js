@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const SiteConfig = require("../models/SiteConfig");
-const { authenticate } = require("../middleware/auth");
+const { protect, isAdmin } = require("../middleware/auth");
 
 // GET - Obtener configuración del banner (público)
 router.get("/banner", async (req, res) => {
@@ -32,7 +32,7 @@ router.get("/banner", async (req, res) => {
 });
 
 // PUT - Actualizar configuración del banner (requiere autenticación)
-router.put("/banner", authenticate, async (req, res) => {
+router.put("/banner", protect, isAdmin, async (req, res) => {
   try {
     const { bannerConfig } = req.body;
 
