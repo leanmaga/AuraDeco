@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import CategoryManager from "../components/Admin/CategoryManager";
 import ProductManager from "../components/Admin/ProductManager";
 import SiteImageManager from "../components/Admin/SiteImageManager";
@@ -9,20 +10,11 @@ import TextContentManager from "../components/Admin/TextContentManager";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("categories");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const userRole = localStorage.getItem("userRole");
-
-    if (!token || (userRole !== "admin" && userRole !== "superadmin")) {
-      navigate("/login");
-    }
-  }, [navigate]);
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userRole");
-    navigate("/login");
+    logout();
+    navigate("/admin");
   };
 
   return (
@@ -30,9 +22,16 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            🎨 Panel de Administración
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              🎨 Panel de Administración
+            </h1>
+            {user && (
+              <p className="text-sm text-gray-600 mt-1">
+                Usuario: <strong>{user.username}</strong> ({user.role})
+              </p>
+            )}
+          </div>
           <button
             onClick={handleLogout}
             className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"

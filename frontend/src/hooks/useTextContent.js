@@ -1,3 +1,4 @@
+// frontend/src/hooks/useTextContent.js
 import { useState, useEffect } from "react";
 import api from "../services/api";
 
@@ -17,7 +18,14 @@ export const useTextContent = (key) => {
         setContent(response.data.content);
         setError(null);
       } catch (err) {
-        console.error("Error al cargar contenido:", err);
+        // Solo loguear errores que NO sean 404
+        if (err.response?.status !== 404) {
+          console.error("Error al cargar contenido:", err);
+        } else {
+          // Para 404, simplemente establecer el contenido como null
+          // El componente usará el valor por defecto
+          console.debug(`Contenido no encontrado: ${key}`);
+        }
         setError(err);
       } finally {
         setLoading(false);
@@ -46,7 +54,9 @@ export const useTextContentSection = (section) => {
         setContents(response.data.contents);
         setError(null);
       } catch (err) {
-        console.error("Error al cargar contenidos:", err);
+        if (err.response?.status !== 404) {
+          console.error("Error al cargar contenidos:", err);
+        }
         setError(err);
       } finally {
         setLoading(false);

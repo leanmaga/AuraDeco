@@ -1,9 +1,7 @@
+// frontend/src/services/api.js
 import axios from "axios";
 
-// IMPORTANTE: Debe incluir /api al final
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-console.log("🔗 API URL configurada:", API_URL); // Para debugging
 
 const api = axios.create({
   baseURL: API_URL,
@@ -12,14 +10,19 @@ const api = axios.create({
   },
 });
 
-// Interceptor para agregar token a todas las peticiones
+// Interceptor para añadir el token JWT a cada petición
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log("📤 Request:", config.method.toUpperCase(), config.url); // Para debugging
+
+    // Solo loguear en desarrollo y no para contenido opcional
+    if (import.meta.env.DEV && !config.url?.includes("text-content")) {
+      console.log("📤 Request:", config.method?.toUpperCase(), config.url);
+    }
+
     return config;
   },
   (error) => {
@@ -28,24 +31,40 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para manejar errores de respuesta
+// Interceptor para manejar respuestas
 api.interceptors.response.use(
   (response) => {
-    console.log("✅ Response:", response.status, response.config.url); // Para debugging
+    // Solo loguear en desarrollo y no para contenido opcional
+    if (import.meta.env.DEV && !response.config.url?.includes("text-content")) {
+      console.log("✅ Response:", response.status, response.config.url);
+    }
     return response;
   },
   (error) => {
-    console.error("❌ Response error:", {
-      status: error.response?.status,
-      url: error.config?.url,
-      message: error.message,
-    });
+    const status = error.response?.status;
+    const url = error.config?.url;
 
-    if (error.response?.status === 401) {
+    // Solo loguear errores que no sean 404 de text-content
+    const isTextContentNotFound =
+      url?.includes("text-content") && status === 404;
+
+    if (!isTextContentNotFound) {
+      console.error("❌ Response error:", {
+        status,
+        url,
+        message: error.message,
+      });
+    }
+
+    // Manejar errores de autenticación
+    if (status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/admin";
+      if (!window.location.pathname.includes("/admin")) {
+        window.location.href = "/admin/login";
+      }
     }
+
     return Promise.reject(error);
   }
 );
