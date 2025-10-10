@@ -1,4 +1,5 @@
 const siteConfigRoutes = require("./routes/siteConfig");
+const textContentRoutes = require("./routes/textContent");
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -89,6 +90,7 @@ app.use("/api/products", require("./routes/products"));
 app.use("/api/upload", require("./routes/upload"));
 app.use("/api/site-images", require("./routes/siteImages"));
 app.use("/api/site-config", siteConfigRoutes);
+app.use("/api/text-content", textContentRoutes);
 
 // Ruta de salud mejorada
 app.get("/api/health", (req, res) => {
