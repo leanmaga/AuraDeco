@@ -1,13 +1,47 @@
 import { Link } from "react-router-dom";
-import { globo1, globo2, arreglo2, arreglo3 } from "../assets/images";
 import Banner from "../components/Banner";
 import BuyCard from "../components/BuyCard";
 import PhotoCard from "../components/PhotoCard";
 import Galeria from "../components/Galeria";
-import { globo5, globo4, globo7, globo6 } from "../assets/images";
-import arreglo from "../assets/arreglo.mp4";
+import useSiteImages from "../hooks/useSiteImages";
 
 const Home = () => {
+  // Cargar imágenes desde Cloudinary
+  const { getImageByKey, loading } = useSiteImages();
+
+  // Si las imágenes están cargando, mostrar un loading
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mb-4"></div>
+          <p className="text-gray-600 font-medium">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Obtener URLs de las imágenes desde Cloudinary
+  const images = {
+    // Banner
+    globdeco: getImageByKey("banner_video"),
+
+    // PhotoCard
+    arreglo: getImageByKey("photocard_video_arreglo"),
+    arreglo2: getImageByKey("photocard_arreglo2"),
+    arreglo3: getImageByKey("photocard_arreglo3"),
+
+    // Galería
+    gallery1: getImageByKey("gallery_foto1"),
+    gallery2: getImageByKey("gallery_foto2"),
+    gallery3: getImageByKey("gallery_foto3"),
+    gallery4: getImageByKey("gallery_foto4"),
+
+    // BuyCards
+    globo1: getImageByKey("buycard_globo1"),
+    globo2: getImageByKey("buycard_globo2"),
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col">
       {/* Botón flotante para armar evento */}
@@ -26,17 +60,17 @@ const Home = () => {
         title="Arreglo de globos personalizado"
         subtitle="Miren la hermosa deco que realizamos para los 15 de Sofía💚🦋!"
         parrafo="También realizamos centros de mesa y columnas"
-        imagenPrincipal={arreglo}
-        imagenenSecundariaUno={arreglo2}
-        imagenSecundariaDos={arreglo3}
+        imagenPrincipal={images.arreglo}
+        imagenenSecundariaUno={images.arreglo2}
+        imagenSecundariaDos={images.arreglo3}
       />
 
       <Galeria
         className="w-full"
-        img1={globo5}
-        img2={globo4}
-        img3={globo7}
-        img4={globo6}
+        img1={images.gallery1}
+        img2={images.gallery2}
+        img3={images.gallery3}
+        img4={images.gallery4}
         titulo1="Miren esta belleza de deco! De Frozen para los 3 añitos 🧊❄️"
         titulo2="Arreglo de La Sirenita!🧜🦀"
         titulo3="Hermosa deco para los 18"
@@ -48,8 +82,8 @@ const Home = () => {
       />
 
       <div className="w-full flex flex-row my-8">
-        <BuyCard imagen={globo1} />
-        <BuyCard imagen={globo2} />
+        <BuyCard imagen={images.globo1} />
+        <BuyCard imagen={images.globo2} />
       </div>
     </div>
   );

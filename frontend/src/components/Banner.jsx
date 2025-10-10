@@ -1,7 +1,75 @@
-import { deco1, deco2, globo1, globo2, globo3, puff1 } from "../assets/images";
-import globdeco from "../assets/globdeco.mp4";
+import useSiteImages from "../hooks/useSiteImages";
+
+// Componente helper para renderizar imagen o video automáticamente
+const MediaItem = ({ src, alt = "", className = "" }) => {
+  if (!src) {
+    return (
+      <div
+        className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}
+      >
+        <span className="text-gray-400">📷</span>
+      </div>
+    );
+  }
+
+  // Detectar si es video basándose en la URL de Cloudinary
+  const isVideo =
+    src.includes("/video/upload/") ||
+    src.endsWith(".mp4") ||
+    src.endsWith(".webm");
+
+  if (isVideo) {
+    return (
+      <video className={className} autoPlay loop muted playsInline>
+        <source src={src} type="video/mp4" />
+        Tu navegador no admite el elemento de video.
+      </video>
+    );
+  }
+
+  return <img src={src} alt={alt} className={className} />;
+};
 
 const Banner = () => {
+  const { getImageByKey, loading } = useSiteImages();
+
+  // Mostrar un loading mientras cargan las imágenes
+  if (loading) {
+    return (
+      <div className="relative bg-white min-h-screen w-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mb-4"></div>
+          <p className="text-gray-600 font-medium">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Leer configuración del localStorage (guardada desde el admin)
+  const savedConfig = localStorage.getItem("bannerConfig");
+  const bannerConfig = savedConfig
+    ? JSON.parse(savedConfig)
+    : {
+        globo1: "banner_globo1",
+        puff1: "banner_puff1",
+        deco1: "banner_deco1",
+        globdeco: "banner_video",
+        globo2: "banner_globo2",
+        deco2: "banner_deco2",
+        globo3: "banner_globo3",
+      };
+
+  // Obtener URLs de Cloudinary según la configuración
+  const media = {
+    globo1: getImageByKey(bannerConfig.globo1),
+    puff1: getImageByKey(bannerConfig.puff1),
+    deco1: getImageByKey(bannerConfig.deco1),
+    globdeco: getImageByKey(bannerConfig.globdeco),
+    globo2: getImageByKey(bannerConfig.globo2),
+    deco2: getImageByKey(bannerConfig.deco2),
+    globo3: getImageByKey(bannerConfig.globo3),
+  };
+
   return (
     <div className="relative bg-white min-h-screen w-full flex flex-col lg:flex-row">
       <div className="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center p-4">
@@ -39,62 +107,66 @@ const Banner = () => {
       <div className="hidden sm:hidden md:hidden lg:block w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center">
         <div aria-hidden="true" className="pointer-events-none">
           <div className="flex items-center space-x-2 lg:space-x-8">
+            {/* Columna 1 */}
             <div className="grid flex-shrink-0 grid-cols-1 gap-y-4 lg:gap-y-8">
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg sm:opacity-0 lg:opacity-100">
-                <img
-                  src={globo1}
-                  alt=""
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg sm:opacity-0 lg:opacity-100">
+                <MediaItem
+                  src={media.globo1}
+                  alt="Decoración con globos"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
 
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg">
-                <img
-                  src={puff1}
-                  alt=""
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
+                <MediaItem
+                  src={media.puff1}
+                  alt="Puff decorativo"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
             </div>
 
+            {/* Columna 2 */}
             <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
               <div className="hidden sm:block h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
-                <img
-                  src={deco1}
-                  alt=""
+                <MediaItem
+                  src={media.deco1}
+                  alt="Decoración de eventos"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
 
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg">
-                <video width="640" height="360" autoPlay loop muted playsInline>
-                  <source src={globdeco} type="video/mp4" />
-                  Tu navegador no admite el elemento de video.
-                </video>
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
+                <MediaItem
+                  src={media.globdeco}
+                  alt="Video de decoración con globos"
+                  className="h-full w-full object-cover object-center"
+                />
               </div>
 
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg">
-                <img
-                  src={globo2}
-                  alt=""
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
+                <MediaItem
+                  src={media.globo2}
+                  alt="Globos decorativos"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
             </div>
 
+            {/* Columna 3 */}
             <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg">
-                <img
-                  src={deco2}
-                  alt=""
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
+                <MediaItem
+                  src={media.deco2}
+                  alt="Decoración para fiestas"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
 
-              <div className="h-50 lg:h-64  w-32 lg:w-44 overflow-hidden rounded-lg">
-                <img
-                  src={globo3}
-                  alt=""
+              <div className="h-50 lg:h-64 w-32 lg:w-44 overflow-hidden rounded-lg">
+                <MediaItem
+                  src={media.globo3}
+                  alt="Arreglo de globos"
                   className="h-full w-full object-cover object-center"
                 />
               </div>
