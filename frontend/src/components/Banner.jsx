@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import useSiteImages from "../hooks/useSiteImages";
+import api from "../services/api";
 
 // Componente helper para renderizar imagen o video automáticamente
 const MediaItem = ({ src, alt = "", className = "" }) => {
@@ -12,7 +14,6 @@ const MediaItem = ({ src, alt = "", className = "" }) => {
     );
   }
 
-  // Detectar si es video basándose en la URL de Cloudinary
   const isVideo =
     src.includes("/video/upload/") ||
     src.endsWith(".mp4") ||
@@ -31,10 +32,39 @@ const MediaItem = ({ src, alt = "", className = "" }) => {
 };
 
 const Banner = () => {
-  const { getImageByKey, loading } = useSiteImages();
+  const { getImageByKey, loading: imagesLoading } = useSiteImages();
+  const [bannerConfig, setBannerConfig] = useState(null);
+  const [configLoading, setConfigLoading] = useState(true);
 
-  // Mostrar un loading mientras cargan las imágenes
-  if (loading) {
+  useEffect(() => {
+    loadBannerConfig();
+  }, []);
+
+  const loadBannerConfig = async () => {
+    try {
+      const response = await api.get("/site-config/banner");
+      if (response.data.success) {
+        setBannerConfig(response.data.config);
+      }
+    } catch (error) {
+      console.error("Error al cargar configuración del banner:", error);
+      // Usar configuración por defecto si falla
+      setBannerConfig({
+        globo1: "banner_globo1",
+        puff1: "banner_puff1",
+        deco1: "banner_deco1",
+        globdeco: "banner_video",
+        globo2: "banner_globo2",
+        deco2: "banner_deco2",
+        globo3: "banner_globo3",
+      });
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
+  // Mostrar loading mientras cargan las imágenes o la configuración
+  if (imagesLoading || configLoading || !bannerConfig) {
     return (
       <div className="relative bg-white min-h-screen w-full flex items-center justify-center">
         <div className="text-center">
@@ -44,20 +74,6 @@ const Banner = () => {
       </div>
     );
   }
-
-  // Leer configuración del localStorage (guardada desde el admin)
-  const savedConfig = localStorage.getItem("bannerConfig");
-  const bannerConfig = savedConfig
-    ? JSON.parse(savedConfig)
-    : {
-        globo1: "banner_globo1",
-        puff1: "banner_puff1",
-        deco1: "banner_deco1",
-        globdeco: "banner_video",
-        globo2: "banner_globo2",
-        deco2: "banner_deco2",
-        globo3: "banner_globo3",
-      };
 
   // Obtener URLs de Cloudinary según la configuración
   const media = {

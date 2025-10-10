@@ -71,11 +71,14 @@ const BannerSettingsManager = () => {
     }
   };
 
-  const loadBannerConfig = () => {
-    // Cargar configuración guardada del localStorage
-    const saved = localStorage.getItem("bannerConfig");
-    if (saved) {
-      setBannerConfig(JSON.parse(saved));
+  const loadBannerConfig = async () => {
+    try {
+      const response = await api.get("/site-config/banner");
+      if (response.data.success) {
+        setBannerConfig(response.data.config);
+      }
+    } catch (error) {
+      console.error("Error al cargar configuración:", error);
     }
   };
 
@@ -86,17 +89,19 @@ const BannerSettingsManager = () => {
     }));
   };
 
-  const handleSave = () => {
-    setSaving(true);
-    // Guardar en localStorage
-    localStorage.setItem("bannerConfig", JSON.stringify(bannerConfig));
-
-    setTimeout(() => {
-      setSaving(false);
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      await api.put("/site-config/banner", { bannerConfig });
       alert(
-        "✅ Configuración guardada exitosamente!\n\nRefresca la página principal para ver los cambios."
+        "✅ Configuración guardada exitosamente!\n\nLos cambios son visibles para todos los usuarios."
       );
-    }, 500);
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      alert("Error al guardar la configuración");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getImagePreview = (imageKey) => {
@@ -144,56 +149,15 @@ const BannerSettingsManager = () => {
             <h3 className="font-semibold text-blue-900 mb-1">Cómo funciona</h3>
             <p className="text-sm text-blue-800">
               Selecciona una imagen o video de tu biblioteca para cada posición
-              del banner. Si no ves suficientes opciones, ve a "🖼️ Imágenes del
-              Sitio" para subir más archivos.
+              del banner. Los cambios se guardan en el servidor y serán visibles
+              para todos los usuarios.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Vista previa del layout */}
-      <div className="bg-gray-50 rounded-lg p-6 mb-8">
-        <h3 className="font-semibold text-gray-800 mb-4">
-          📐 Vista del Banner
-        </h3>
-        <div className="grid grid-cols-3 gap-4">
-          {/* Columna 1 */}
-          <div className="space-y-4">
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 1 - Superior
-            </div>
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 1 - Inferior
-            </div>
-          </div>
-
-          {/* Columna 2 */}
-          <div className="space-y-4">
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 2 - Superior
-            </div>
-            <div className="bg-purple-100 rounded border-2 border-purple-400 aspect-video flex items-center justify-center text-purple-700 text-xs font-semibold">
-              🎥 VIDEO/IMAGEN PRINCIPAL
-            </div>
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 2 - Inferior
-            </div>
-          </div>
-
-          {/* Columna 3 */}
-          <div className="space-y-4">
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 3 - Superior
-            </div>
-            <div className="bg-white rounded border-2 border-dashed border-gray-300 aspect-video flex items-center justify-center text-gray-400 text-xs">
-              Columna 3 - Inferior
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Configuración de cada posición */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-8">
         {positions.map((position) => {
           const selectedImage = availableImages.find(
             (img) => img.key === bannerConfig[position.key]
@@ -206,6 +170,25 @@ const BannerSettingsManager = () => {
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
             >
               <div className="flex items-start gap-6">
+                {/* Preview */}
+                {previewUrl && (
+                  <div className="w-40 h-32 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
+                    {isVideo(previewUrl) ? (
+                      <video
+                        src={previewUrl}
+                        className="w-full h-full object-cover"
+                        muted
+                      />
+                    ) : (
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+
                 {/* Info */}
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">
@@ -229,54 +212,6 @@ const BannerSettingsManager = () => {
                       </option>
                     ))}
                   </select>
-
-                  {/* Info de selección */}
-                  {selectedImage && (
-                    <div className="mt-3 flex items-center gap-2 text-sm">
-                      <span className="text-gray-600">Seleccionado:</span>
-                      <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                        {selectedImage.key}
-                      </code>
-                      {isVideo(selectedImage.url) && (
-                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium">
-                          🎥 Video
-                        </span>
-                      )}
-                      {selectedImage.section && (
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                          {selectedImage.section}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Preview */}
-                <div className="w-48 h-32">
-                  {previewUrl ? (
-                    <div className="w-full h-full rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
-                      {isVideo(previewUrl) ? (
-                        <video
-                          src={previewUrl}
-                          className="w-full h-full object-cover"
-                          muted
-                        />
-                      ) : (
-                        <img
-                          src={previewUrl}
-                          alt={position.label}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="w-full h-full rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50">
-                      <div className="text-center">
-                        <div className="text-3xl mb-1">📷</div>
-                        <div className="text-xs">Sin seleccionar</div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -284,32 +219,22 @@ const BannerSettingsManager = () => {
         })}
       </div>
 
-      {/* Botones de acción */}
-      <div className="flex gap-4 mt-8 sticky bottom-4 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {saving ? "Guardando..." : "💾 Guardar Configuración"}
-        </button>
-
-        <button
-          onClick={() => window.open("/", "_blank")}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-        >
-          👁️ Ver Sitio
-        </button>
-      </div>
-
-      {/* Advertencia */}
-      <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <span className="text-xl">⚠️</span>
-          <div className="text-sm text-yellow-800">
-            <strong>Importante:</strong> Después de guardar, debes refrescar la
-            página principal del sitio para ver los cambios aplicados.
+      {/* Botón guardar */}
+      <div className="sticky bottom-6 bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-800">Guardar cambios</h3>
+            <p className="text-sm text-gray-600">
+              Los cambios serán visibles inmediatamente para todos los usuarios
+            </p>
           </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-lg font-medium hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {saving ? "Guardando..." : "💾 Guardar Configuración"}
+          </button>
         </div>
       </div>
     </div>
