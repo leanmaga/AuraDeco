@@ -6,6 +6,8 @@ import Galeria from "../components/Galeria";
 import useSiteImages from "../hooks/useSiteImages";
 import { useTextContent } from "../hooks/useTextContent";
 import Footer from "../components/Footer";
+import ServicesSection from "./ServicesSection";
+import TestimonialSection from "./TestimonialSection";
 
 const Home = () => {
   // Cargar imágenes desde Cloudinary
@@ -159,6 +161,9 @@ const Home = () => {
         <BuyCard imagen={images.globo1} />
         <BuyCard imagen={images.globo2} />
       </div>
+
+      <ServicesSection />
+      <TestimonialSection />
 
       <Footer />
     </div>
